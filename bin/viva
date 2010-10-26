@@ -11,10 +11,10 @@ use File::Path qw/rmtree/;
 use File::Inplace;
 
 use Term::ANSIColor qw/:constants/;
-use JSON;
-use Data::Util qw/:check/;
 
 use LWP;
+use JSON;
+use Data::Util qw/:check/;
 
 
 my $go = Getopt::Compact::WithCmd->new( modes => [ qw/verbose/ ],
@@ -57,6 +57,7 @@ sub init {
   system("git clone git://github.com/tpope/vim-pathogen.git $tmpdir/pathogen");
   dircopy("$tmpdir/pathogen", $vim_home);
   rmtree "$vim_home/.git";
+  print "not forget to add `call pathogen#runtime_append_all_bundles` line to your .vimrc (:\n";
 }
 
 
@@ -169,6 +170,7 @@ sub remove {
   _remove_submodule_info($gitmodules);
   _remove_submodule_info($gitconfig);
   system("git rm --cached $vim_home/bundle/$name");
+  rmtree("$vim_home/bundle/$name");
 }
 
 sub _remove_submodule_info {

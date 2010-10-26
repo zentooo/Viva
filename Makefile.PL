@@ -7,6 +7,11 @@ all_from 'lib/Viva.pm';
 tests 't/*.t';
 author_tests 'xt';
 
+unless (can_run 'git') {
+    print "*** `git` command not installed!!\n";
+    exit 1;
+}
+
 test_requires 'Test::More';
 install_script 'bin/viva';
 auto_set_repository;
