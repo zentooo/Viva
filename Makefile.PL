@@ -2,7 +2,18 @@ use inc::Module::Install;
 name 'Viva';
 all_from 'lib/Viva.pm';
 
-# requires '';
+requires 'autodie';
+requires 'Getopt::Compact::WithCmd';
+requires 'File::Temp';
+requires 'File::Copy::Recursive';
+requires 'File::Path';
+requires 'File::Inplace';
+requires 'File::chdir';
+requires 'Cwd';
+requires 'Term::ANSIColor';
+requires 'LWP';
+requires 'JSON';
+requires 'Data::Util';
 
 tests 't/*.t';
 author_tests 'xt';
