@@ -10,6 +10,7 @@ use File::Copy::Recursive qw/dircopy/;
 use File::Path qw/rmtree/;
 use File::Inplace;
 
+use Cwd;
 use Term::ANSIColor qw/:constants/;
 
 use LWP;
@@ -53,11 +54,22 @@ sub main {
 # init
 
 sub init {
-  my $tmpdir = tempdir(CLEANUP => 1);
-  system("git clone git://github.com/tpope/vim-pathogen.git $tmpdir/pathogen");
-  dircopy("$tmpdir/pathogen", $vim_home);
-  rmtree "$vim_home/.git";
-  print "not forget to add `call pathogen#runtime_append_all_bundles` line to your .vimrc (:\n";
+
+  if ( -e "$vim_home/autoload/pathogen.vim" ) {
+    print "Looks you already have install pathogen.vim :)\n";
+  }
+  else {
+    my $tmpdir = tempdir(CLEANUP => 1);
+    system("git clone git://github.com/tpope/vim-pathogen.git $tmpdir/pathogen");
+    dircopy("$tmpdir/pathogen", $vim_home);
+    rmtree "$vim_home/.git";
+
+    print "\n";
+    print "###################################################################################\n";
+    print "not forget to add `call pathogen#runtime_append_all_bundles` line to your .vimrc :)\n";
+    print "###################################################################################\n";
+    print "\n";
+  }
 }
 
 
@@ -156,8 +168,11 @@ sub _run_term {
 sub _install {
   my $repository = shift;
   my $git_uri = "git://github.com/$repository->{username}/$repository->{name}.git";
-  system("git submodule add $git_uri $vim_home/bundle/$repository->{name}");
+  my $pwd = Cwd::getcwd;
+  chdir $ENV{HOME};
+  system("git submodule add $git_uri .vim/bundle/$repository->{name}");
   system("git submodule init");
+  chdir $pwd;
 }
 
 
@@ -165,21 +180,30 @@ sub _install {
 
 sub remove {
   my $name = shift @ARGV;
-  my $gitmodules = "$ENV{HOME}/.gitmodules";
-  my $gitconfig = "$ENV{HOME}/.git/config";
-  _remove_submodule_info($gitmodules);
-  _remove_submodule_info($gitconfig);
-  system("git rm --cached $vim_home/bundle/$name");
-  rmtree("$vim_home/bundle/$name");
+
+  if ( -d "$vim_home/bundle/$name" ) {
+    my $gitmodules = "$ENV{HOME}/.gitmodules";
+    my $gitconfig = "$ENV{HOME}/.git/config";
+    _remove_submodule_info($name, $gitmodules);
+    _remove_submodule_info($name, $gitconfig);
+    system("git rm --cached $vim_home/bundle/$name");
+    rmtree("$vim_home/bundle/$name");
+  }
+  else {
+    print "Looks you are not installing the plugin name with $name\n";
+  }
 }
 
 sub _remove_submodule_info {
-  my $filename = shift;
+  my ($name, $filename) = @_;
   my $editor = File::Inplace->new(file => $filename);
-  my $git_id;
-  while ( my ($line) = $editor->next_line ) {
-    $editor->replace_line($line =~ s/^.*?$name.*?\n//);
+
+  while ( my $line = $editor->next_line ) {
+    if ( $line =~ /bundle\/$name|$name\.git/) {
+      $editor->replace_line('');
+    }
   }
+  $editor->commit;
 }
 
 
