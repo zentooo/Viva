@@ -80,6 +80,7 @@ sub init {
 
 sub search {
   my $query = shift @ARGV;
+  return unless $query;
   my $url = "http://github.com/api/v2/json/repos/search/$query?language=VimL";
   my $ua = LWP::UserAgent->new;
   my $req = HTTP::Request->new(GET => $url);
@@ -178,6 +179,7 @@ sub _install {
 
 sub remove {
   my $name = shift @ARGV;
+  return unless $name;
 
   if ( -d "$vim_home/bundle/$name" ) {
     my $gitmodules = "$ENV{HOME}/.gitmodules";
@@ -197,10 +199,10 @@ sub remove {
 
 sub _remove_submodule_info {
   my ($name, $filename) = @_;
-  my $editor = File::Inplace->new(file => $filename);
+  my $editor = File::Inplace->new(file => $filename, chomp => 0);
 
   while ( my $line = $editor->next_line ) {
-    if ( $line =~ /bundle\/$name|$name\.git/) {
+    if ( $line =~ /bundle\/$name|$name\.git/ ) {
       $editor->replace_line('');
     }
   }
