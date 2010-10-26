@@ -3,12 +3,15 @@
 use strict;
 use warnings;
 
+use autodie;
+
 use Getopt::Compact::WithCmd;
 
 use File::Temp qw/tempdir/;
 use File::Copy::Recursive qw/dircopy/;
 use File::Path qw/rmtree/;
 use File::Inplace;
+use File::chdir;
 
 use Cwd;
 use Term::ANSIColor qw/:constants/;
@@ -108,9 +111,6 @@ sub _print_repos {
 
   return 0 if scalar @$repositories == 0;
 
-  #my @installed_repo_ids = keys %{Viyond::InstallData::Metadata->load_all};
-  my @installed_repo_ids = ();
-
   $Term::ANSIColor::AUTORESET = 1;
   my $repos_num = 1;
 
@@ -122,10 +122,6 @@ sub _print_repos {
     print " ";
     print BOLD WHITE "$repository->{username}/";
     print BOLD CYAN $repository->{name};
-    if ( grep { $_ eq "$repository->{name}-$repository->{id}" } @installed_repo_ids ) {
-      print " ";
-      print BOLD WHITE ON_MAGENTA "[installed]";
-    }
     print " (";
     print BOLD GREEN "followers: ";
     print "$repository->{followers},";
@@ -168,11 +164,13 @@ sub _run_term {
 sub _install {
   my $repository = shift;
   my $git_uri = "git://github.com/$repository->{username}/$repository->{name}.git";
-  my $pwd = Cwd::getcwd;
-  chdir $ENV{HOME};
-  system("git submodule add $git_uri .vim/bundle/$repository->{name}");
-  system("git submodule init");
-  chdir $pwd;
+
+  _home_do(sub {
+    $vim_home =~ /$ENV{HOME}\/(.*)/;
+    my $relative_vim_home = $1;
+    system("git submodule add $git_uri $relative_vim_home/bundle/$repository->{name}");
+    system("git submodule init");
+  });
 }
 
 
@@ -186,8 +184,11 @@ sub remove {
     my $gitconfig = "$ENV{HOME}/.git/config";
     _remove_submodule_info($name, $gitmodules);
     _remove_submodule_info($name, $gitconfig);
-    system("git rm --cached $vim_home/bundle/$name");
-    rmtree("$vim_home/bundle/$name");
+
+    _home_do(sub {
+      system("git rm --cached $vim_home/bundle/$name");
+      rmtree("$vim_home/bundle/$name");
+    });
   }
   else {
     print "Looks you are not installing the plugin name with $name\n";
@@ -210,12 +211,16 @@ sub _remove_submodule_info {
 # list
 
 sub list {
-  my @lines = `git submodule status`;
+  my @names;
 
-  for my $line (@lines) {
-    my @parts = split / (?!\()/, $line;
-    print $parts[-1];
-  }
+  _home_do(sub {
+    my @lines = `git submodule status`;
+
+    for my $line (@lines) {
+      my @parts = split / (?!\()/, $line;
+      print $parts[-1];
+    }
+  });
 }
 
 
@@ -223,5 +228,18 @@ sub list {
 
 sub update {
   # just update
-  system("git submodule update");
+  _home_do(sub {
+    system("git submodule update");
+  });
+}
+
+
+
+# util
+
+sub _home_do {
+  {
+    local $CWD = $ENV{HOME};
+    shift->();
+  }
 }
