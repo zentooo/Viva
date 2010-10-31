@@ -7,6 +7,7 @@ use autodie;
 
 use Getopt::Compact::WithCmd;
 
+use Path::Class;
 use File::Temp qw/tempdir/;
 use File::Copy::Recursive qw/dircopy/;
 use File::Path qw/rmtree/;
@@ -229,19 +230,27 @@ sub list {
 # update
 
 sub update {
-  # just update
+  for my $bundle_top (dir("$vim_home/bundle")->children) {
+    _chdir_do($bundle_top, sub {
+      system("git pull origin master");
+    });
+  }
   _home_do(sub {
     system("git submodule update");
   });
 }
 
 
-
 # util
 
 sub _home_do {
+  _chdir_do($ENV{HOME}, shift);
+}
+
+sub _chdir_do {
+  my ($dest, $code) = @_;
   {
-    local $CWD = $ENV{HOME};
-    shift->();
+    local $CWD = $dest;
+    $code->();
   }
 }
