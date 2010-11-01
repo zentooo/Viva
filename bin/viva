@@ -235,9 +235,6 @@ sub update {
       system("git pull origin master");
     });
   }
-  _home_do(sub {
-    system("git submodule update");
-  });
 }
 
 
