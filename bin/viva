@@ -46,7 +46,7 @@ my $go = Getopt::Compact::WithCmd->new( modes => [ qw/verbose/ ],
 );
 
 my $opts = $go->opts;
-my $cmd = $go->command || 'search';
+my $cmd = $go->command || $go->show_usage;
 
 &main; exit;
 
