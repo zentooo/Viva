@@ -230,11 +230,7 @@ sub list {
 # update
 
 sub update {
-  for my $bundle_top (dir("$vim_home/bundle")->children) {
-    _chdir_do($bundle_top, sub {
-      system("git submodule foreach 'git fetch;git checkout origin/master'");
-    });
-  }
+  system("git submodule foreach 'git fetch;git checkout origin/master'");
 }
 
 
