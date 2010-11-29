@@ -31,7 +31,8 @@ my $go = Getopt::Compact::WithCmd->new( modes => [ qw/verbose/ ],
       desc => 'initialize pathogen + git submodule vim plugin management environment.'
     },
     search => {
-      desc => 'search and install vim plugins by github'
+      desc => 'search and install vim plugins by github',
+      options => [ [ [qw/l language/], 'language such as Perl, Ruby, Python, Scheme (default is VimL)', '=s', \my $lang, { default => "VimL"} ] ],
     },
     list => {
       desc => 'list all installed plugins'
@@ -82,7 +83,7 @@ sub init {
 sub search {
   my $query = shift @ARGV;
   return unless $query;
-  my $url = "http://github.com/api/v2/json/repos/search/$query?language=VimL";
+  my $url = "http://github.com/api/v2/json/repos/search/$query?language=$lang";
   my $ua = LWP::UserAgent->new;
   my $req = HTTP::Request->new(GET => $url);
   my $res = $ua->request($req);
