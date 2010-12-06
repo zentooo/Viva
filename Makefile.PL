@@ -24,6 +24,4 @@ unless (can_run 'git') {
 
 test_requires 'Test::More';
 install_script 'bin/viva';
-auto_set_repository;
-auto_include;
 WriteAll;
