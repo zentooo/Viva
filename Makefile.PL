@@ -16,7 +16,6 @@ requires 'JSON';
 requires 'Data::Util';
 
 tests 't/*.t';
-author_tests 'xt';
 
 unless (can_run 'git') {
     print "*** `git` command not installed!!\n";
