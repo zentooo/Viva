@@ -234,11 +234,9 @@ sub list {
 # update
 
 sub update {
-  system("git submodule foreach 'git fetch;git checkout origin/master'");
-
   for my $dir (dir("$vim_home/bundle")->children) {
     _chdir_do($dir, sub {
-      system('git commit -m "updated git submodule"');
+      system('git pull -f');
     });
   }
 }
