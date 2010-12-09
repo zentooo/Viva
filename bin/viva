@@ -43,6 +43,9 @@ my $go = Getopt::Compact::WithCmd->new( modes => [ qw/verbose/ ],
     update => {
       desc => 'update all installed plugins'
     },
+    cloned => {
+      desc => 'use this command just after you cloned from remote repo'
+    },
   }
 );
 
@@ -232,6 +235,26 @@ sub list {
 
 sub update {
   system("git submodule foreach 'git fetch;git checkout origin/master'");
+
+  for my $dir (dir("$vim_home/bundle")->children) {
+    _chdir_do($dir, sub {
+      system('git commit -m "updated git submodule"');
+    });
+  }
+}
+
+# cloned
+
+sub cloned {
+  _home_do(sub {
+    system('git init');
+    system('git update');
+  });
+  for my $dir (dir("$vim_home/bundle")->children) {
+    _chdir_do($dir, sub {
+      system('git checkout master -f');
+    });
+  }
 }
 
 
