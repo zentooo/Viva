@@ -245,8 +245,7 @@ sub update {
 
 sub cloned {
   _home_do(sub {
-    system('git init');
-    system('git update');
+    system('git submodule update');
   });
   for my $dir (dir("$vim_home/bundle")->children) {
     _chdir_do($dir, sub {
