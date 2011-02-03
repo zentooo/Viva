@@ -193,7 +193,7 @@ sub remove {
     _remove_submodule_info($name, $gitconfig);
 
     _home_do(sub {
-      system("git rm --cached $vim_home/bundle/$name");
+      system("git rm -r --cached $vim_home/bundle/$name");
       rmtree("$vim_home/bundle/$name");
     });
   }
@@ -245,6 +245,7 @@ sub update {
 
 sub cloned {
   _home_do(sub {
+    system('git submodule init');
     system('git submodule update');
   });
   for my $dir (dir("$vim_home/bundle")->children) {
